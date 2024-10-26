@@ -19,7 +19,7 @@ __pycache__/
 *.log
 tmp/
 notes.md
-chatcraze.db
+src/db/*.db
 
 # Build Artifacts
 build/
