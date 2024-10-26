@@ -1,0 +1,26 @@
+# Virtual Environment
+.venv/
+venv/
+
+# Python Bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment Variables
+.env
+
+# IDE and Editor Files
+.idea/
+.vscode/
+*.swp
+
+# Logs and Temporary Files
+*.log
+tmp/
+notes.md
+chatcraze.db
+
+# Build Artifacts
+build/
+dist/
