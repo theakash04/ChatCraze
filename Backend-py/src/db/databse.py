@@ -27,11 +27,13 @@ class DatabaseManager:
     def __execute_query(
         self, query: str, param: Tuple = (), fetch: bool = False, fetch_type: int = 1
     ) -> Any:
+        conn = None
+        cursor = None
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-
             cursor.execute(query, param)
+
             if fetch:
                 if fetch_type == 1:
                     return cursor.fetchone()
@@ -39,12 +41,22 @@ class DatabaseManager:
                     return cursor.fetchmany()
                 else:
                     return cursor.fetchall()
+
             conn.commit()
         except sqlite3.IntegrityError as err:
-            conn.rollback()
+            if conn:
+                conn.rollback()
             raise HTTPException(status_code=409, detail=f"Integrity error: {err}")
+        except sqlite3.ProgrammingError as err:
+            if conn:
+                conn.rollback()
+            raise HTTPException(status_code=400, detail=f"Programming error: {err}")
         except Exception as err:
-            raise HTTPException(status_code=500, detail="Database error occurred.")
+            if conn:
+                conn.rollback()
+            raise HTTPException(
+                status_code=500, detail=f"Database error occurred: {str(err)}"
+            )
         finally:
             cursor.close()
             conn.close()
@@ -54,7 +66,10 @@ class DatabaseManager:
         current_directory = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(current_directory, "schema.sql"), "r") as f:
             schema = f.read()
-        self.__execute_query(schema)
+        for stmt in schema.split(";"):
+            stmt = stmt.strip()
+            if stmt:
+                self.__execute_query(stmt)
 
     # insert or delete based on verification status
     def insert_user_data(self, user: signUpModel, otp: str, verified: bool) -> bool:
@@ -63,7 +78,7 @@ class DatabaseManager:
             self.__execute_query(delete_query, (user.username, user.email))
         else:
             insert_query = """
-                INSERT INTO users (username, email, password, otp, created_at) 
+                INSERT INTO users (username, email, password, otp, createdAt) 
                 VALUES (?,?,?,?,?)
             """
             self.__execute_query(
@@ -74,18 +89,18 @@ class DatabaseManager:
 
     # check and return the otp
     def verify_otp(self, username: str) -> dict[str, Any]:
-        query = "SELECT otp, created_at FROM users WHERE username = ?"
+        query = "SELECT otp, createdAt, email FROM users WHERE username = ?"
         result = self.__execute_query(query, (username,), fetch=True)
         if result:
-            otp, created_at = result
-            return {"otp": otp, "created_at": created_at}
+            otp, createdAt, email = result
+            return {"otp": otp, "createdAt": createdAt, "email": email}
         else:
             raise HTTPException(status_code=404, detail="User not found!")
 
     # set user as verified
     def verified_user(self, username: str) -> bool:
-        update_query = "UPDATE users SET verified = ? WHERE username = ?"
-        self.__execute_query(update_query, (True, username))
+        update_query = "UPDATE users SET isVerified = ? WHERE username = ?"
+        data = self.__execute_query(update_query, (True, username), fetch=True)
         return True
 
     # check if user exist or not
@@ -103,7 +118,7 @@ class DatabaseManager:
             parameters.append(email)
 
         # Join conditions with OR if any condition exists
-        query = "SELECT verified FROM users WHERE " + " OR ".join(conditions)
+        query = "SELECT isVerified FROM users WHERE " + " OR ".join(conditions)
         return self.__execute_query(query, tuple(parameters), fetch=True)
 
     def getPass(self, username: str):
