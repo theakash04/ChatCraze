@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { signUpSchema } from "@/model/signUpSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signInSchema } from "@/model/loginSchema";
 import axios, { AxiosError } from "axios";
 import { z } from "zod";
 import {
@@ -50,14 +49,14 @@ function Page() {
         setUsernameMessage("");
         try {
           const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_API}/checkUsername?username=${username}`
+            `${process.env.NEXT_PUBLIC_BACKEND_API}/checkUsername?username=${username}`,
           );
           setUsernameMessage(response.data.message);
         } catch (error) {
           const AxiosError = error as AxiosError<ApiResponse>;
           setUsernameMessage(
             AxiosError.response?.data.message ??
-              "username shuld be greater than 3"
+              "username shuld be greater than 3",
           );
         } finally {
           setIsCheckingUsername(false);
@@ -73,10 +72,10 @@ function Page() {
     setIsSubmitting(true);
     try {
       console.log(data);
-      
+
       const response = await axios.post<ApiResponse>(
-        `${process.env.NEXT_PUBLIC_BACKEND_API}/sign-up`,
-        data
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/signUp`,
+        data,
       );
       toast({
         title: "Success",
@@ -97,10 +96,10 @@ function Page() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-background mx-5">
-      <div className="w-full max-w-md p-8 space-y-8 bg-secondary rounded-lg shadow-md">
+    <div className="flex justify-center items-center pt-40 bg-background mx-5">
+      <div className="w-full max-w-md p-8 space-y-8 bg-primary-foreground rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
             Join ChatCraze
           </h1>
           <p className="mb-4">SignUp to chat freely with others!</p>
@@ -115,7 +114,7 @@ function Page() {
                   <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="username?"
+                      placeholder="user_example"
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -127,8 +126,8 @@ function Page() {
                   <p
                     className={`text-sm ${
                       usernameMessage == "Username Available"
-                        ? "text-green-500"
-                        : "text-red-500"
+                        ? "text-chart-2"
+                        : "text-destructive"
                     }`}
                   >
                     {usernameMessage}
@@ -145,7 +144,7 @@ function Page() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email?" {...field} />
+                    <Input placeholder="example@akashtwt.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,7 +158,11 @@ function Page() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="top seceret"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,8 +186,8 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Already a member?{" "}
-            <Link href="/sign-in" className="text-blue-500 hover:text-blue-700">
-              Sign in
+            <Link href="/login" className="text-ring hover:text-chart-5">
+              login
             </Link>
           </p>
         </div>

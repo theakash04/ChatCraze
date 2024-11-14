@@ -1,5 +1,6 @@
-export interface chat {
+export interface messages {
   message: string;
   from: string;
-  time: Date;
+  to: string;
+  // time: string;
 }

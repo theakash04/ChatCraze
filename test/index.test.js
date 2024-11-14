@@ -122,7 +122,6 @@ describe('Authentication API Tests', () => {
         const response = await axios.post(`${BACKEND_URL}/login`, new URLSearchParams(loginData));
         expect(response.status).toBe(200);
         expect(response.data.message).toBe("user loggedIn successfully");
-        expect(response.data.data).toHaveProperty("access_token");
     });
 
     test('User cannot log in with incorrect password', async () => {

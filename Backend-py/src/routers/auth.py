@@ -1,11 +1,12 @@
 import os
+import jwt
 from datetime import datetime, timedelta
+from typing import Annotated
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from fastapi import APIRouter, HTTPException, Depends, Query, Response
+from fastapi import APIRouter, HTTPException, Depends, Query, Response, Header
 from fastapi_login import LoginManager, exceptions
 from fastapi.security import OAuth2PasswordRequestForm
-
 from src.utils.ApiResponse import Apiresponse
 from src.utils.email import send_mail
 from src.utils.otp_gen import generate_otp
@@ -14,15 +15,20 @@ from src.model.req_body_model import signUpModel, verifyModel
 from src.db.databse import DatabaseManager
 
 router = APIRouter(prefix="/api/v1", tags=["API"])
+
+# jwt usable variables
+jwt_algorithm = "HS256"
+auth_secret = os.environ["auth_secret"]
+
 db_manager = DatabaseManager()
+loginManager = LoginManager(
+    auth_secret, "/api/v1/login", use_cookie=True, use_header=True)
 
-loginManager = LoginManager(os.environ["auth_secret"], "/api/v1/login")
-
-# this can be used globally for hashing and verifying as ph.hash or ph.verify
+# this variable is being used globally for hashing and verifying as ph.hash or ph.verify
 ph = PasswordHasher()
 
 
-@router.get("/", status_code=200)
+@router.get("/hs", status_code=200)
 def healthCheck():
     return Apiresponse(200, message="Health checked successfully")
 
@@ -51,7 +57,8 @@ def create_user_account(user: signUpModel):
     def send_otp_and_create_user(verified_status: bool):
         hashed_pass = ph.hash(user.password)
         code = generate_otp()
-        otp_template = create_otp_mail_template(username=user.username, verifycode=code)
+        otp_template = create_otp_mail_template(
+            username=user.username, verifycode=code)
         email_sent = send_mail(
             email=user.email,
             username=user.username,
@@ -84,18 +91,20 @@ def create_user_account(user: signUpModel):
 def verify_user(req: verifyModel):
     result = db_manager.verify_otp(req.username)
 
-    if req.code != result["otp"]:
+    if req.otp != result["otp"]:
         raise HTTPException(status_code=403, detail="OTP is not valid!")
 
     if (
-        datetime.now() - datetime.strptime(result["createdAt"], "%Y-%m-%d %H:%M:%S.%f")
+        datetime.now() -
+        datetime.strptime(result["createdAt"], "%Y-%m-%d %H:%M:%S.%f")
     ) >= timedelta(minutes=10):
         raise HTTPException(status_code=403, detail="OTP has expired")
 
     db_manager.verified_user(username=req.username)
 
     verify_mail = create_verified_mail_template(username=req.username)
-    send_mail(username=req.username, email=result["email"], html_template=verify_mail)
+    send_mail(username=req.username,
+              email=result["email"], html_template=verify_mail)
 
     return Apiresponse(200, message="User verified successfully!")
 
@@ -116,7 +125,7 @@ def login_user(
     username = data.username
     password = data.password
     isUserExist = db_manager.user_exists(username=username)
-    
+
     if not isUserExist:
         raise exceptions.InvalidCredentialsException
 
@@ -125,11 +134,60 @@ def login_user(
     try:
         ph.verify(hashedPass[0], password)
     except VerifyMismatchError:
-        raise exceptions.InvalidCredentialsException 
+        raise exceptions.InvalidCredentialsException
 
-    access_token = loginManager.create_access_token(data={"sub": username})
-        
+    expiration_date = datetime.utcnow() + timedelta(days=7)
 
+    access_token = jwt.encode({"username": username,
+                               "exp": expiration_date},
+                              auth_secret,
+                              jwt_algorithm)
+
+    response.set_cookie(key="accessToken", value=access_token,
+                        secure=False, samesite="Lax", httponly=True,)
     return Apiresponse(
-        200, data={"access_token": access_token}, message="user loggedIn successfully"
+        200,
+        data={"accessToken": access_token, "username": username},
+        message="user loggedIn successfully"
     )
+
+
+# route to verify and remake accessToken
+@router.get("/verify_access_token", status_code=200)
+def verify_access_token(token: Annotated[str | None, Header()]):
+    # Verifying access token from header
+    if not token:
+        raise HTTPException(status_code=401, detail="Access token is missing.")
+
+    try:
+        # Decode the token
+        payload = jwt.decode(token, auth_secret, algorithms=[jwt_algorithm])
+        username = payload.get("username")
+
+        if username is None:
+            raise HTTPException(
+                status_code=401, detail="Invalid token: No username found.")
+
+        # Load user from the database
+        user = db_manager.user_exists(username)
+
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found.")
+
+        return Apiresponse(statusCode=200, data={"username": username})
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired.")
+
+    except jwt.JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+
+@router.get("/logout", status_code=200)
+def logoutUser(res: Response):
+    res.delete_cookie("accessToken", path="/", secure=True, samesite="None")
+
+    return Apiresponse(statusCode=200, message="Logged out successfully")
+
+
+__all__ = ["router", "loginManager"]

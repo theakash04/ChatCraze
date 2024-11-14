@@ -1,9 +1,29 @@
-// here the homescreen of the chat app no homepage homepage will be hosted on different website like name chatcraze.com than the website will be on web.chatcraze.com
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <span className="font-bold text-6xl">Hello, this is Chatcraze</span>
-    </div>
+    <main className="min-h-screen bg-background flex items-center justify-center">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tight mb-4">
+            Welcome to Chatcraze
+          </h1>
+          <p className="text-muted-foreground text-lg mb-8">
+            Connect, collaborate, and communicate in real-time
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link href="/login">
+              <Button size="lg">Get Started</Button>
+            </Link>
+            <Link href="/sign-up">
+              <Button variant="outline" size="lg">
+                Sign Up
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

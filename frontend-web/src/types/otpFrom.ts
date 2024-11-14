@@ -1,3 +1,3 @@
 export interface OTPFormValues {
-  otp: string[];
+  otp: string;
 }

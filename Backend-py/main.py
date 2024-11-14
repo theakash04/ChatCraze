@@ -1,19 +1,15 @@
-import os
 from dotenv import load_dotenv
-from fastapi import (
-    FastAPI,
-    Depends,
-    Response,
-)
+from fastapi import FastAPI
 from src.db.databse import DatabaseManager
 from fastapi.middleware.cors import CORSMiddleware
-from src.services.websocket_connectionManager import ConnectionManager
 from src.routers.auth import router as auth_router
+from src.routers.websocket import router as ws_router
+from src.routers.users import router as users_router
 
 app = FastAPI()
 
 load_dotenv()
-origins = ["http://localhost", "http://localhost:3000"]
+origins = ["http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,11 +22,6 @@ app.add_middleware(
 db_manager = DatabaseManager()
 
 
-# secret = os.environ["auth_secret"]
-
-
-
-
 # connecting to db on start
 @app.on_event("startup")
 def create_db():
@@ -38,39 +29,5 @@ def create_db():
 
 
 app.include_router(auth_router)
-
-
-
-
-
-# will delete the code below after migrating it to their respective folder
-
-
-
-
-
-
-
-
-
-
-
-# # socket.io implementation
-# manager = ConnectionManager()
-
-
-# @app.websocket("/ws/{client_id}")
-# async def websocket_endpoint(websocket: WebSocket, client_id: str):
-#     await manager.connect(websocket)
-#     print(websocket)
-#     try:
-#         while True:
-#             data = await websocket.receive_text()
-#             await manager.send_personal_message(f"you wrote: {data}", websocket)
-#             await manager.brodcast(f"client #{client_id} syas: {data}")
-#     except WebSocketDisconnect:
-#         manager.disconnect(websocket)
-#         await manager.brodcast(f"client #{client_id} left the chat")
-
-
-
+app.include_router(ws_router)
+app.include_router(users_router)

@@ -46,11 +46,13 @@ class DatabaseManager:
         except sqlite3.IntegrityError as err:
             if conn:
                 conn.rollback()
-            raise HTTPException(status_code=409, detail=f"Integrity error: {err}")
+            raise HTTPException(
+                status_code=409, detail=f"Integrity error: {err}")
         except sqlite3.ProgrammingError as err:
             if conn:
                 conn.rollback()
-            raise HTTPException(status_code=400, detail=f"Programming error: {err}")
+            raise HTTPException(
+                status_code=400, detail=f"Programming error: {err}")
         except Exception as err:
             if conn:
                 conn.rollback()
@@ -106,7 +108,8 @@ class DatabaseManager:
     # check if user exist or not
     def user_exists(self, username: str = None, email: str = None):
         if not (username or email):
-            raise ValueError("At least one of username or email must be provided.")
+            raise ValueError(
+                "At least one of username or email must be provided.")
 
         # Build the SQL query dynamically based on input
         conditions, parameters = [], []
@@ -124,6 +127,10 @@ class DatabaseManager:
     def getPass(self, username: str):
         query = "SELECT password FROM users WHERE username = ?"
         return self.__execute_query(query, (username,), fetch=True)
+
+    def getAllUsers(self):
+        query = "SELECT username FROM users"
+        return self.__execute_query(query, fetch=True, fetch_type=3)
 
 
 __all__ = ["DatabaseManager"]

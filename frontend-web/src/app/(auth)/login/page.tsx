@@ -18,15 +18,11 @@ import {
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { useDebounceCallback } from "usehooks-ts";
 import { Loader2 } from "lucide-react";
 import { ApiResponse } from "@/types/ApiResponse";
 import Link from "next/link";
 
 function Page() {
-  const [username, setUsername] = useState("");
-  const [usernameMessage, setUsernameMessage] = useState("");
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
@@ -37,7 +33,6 @@ function Page() {
     resolver: zodResolver(signInSchema),
     defaultValues: {
       username: "",
-      email: "",
       password: "",
     },
   });
@@ -52,19 +47,26 @@ function Page() {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+          withCredentials: true,
+        },
       );
+
+      const { username, accessToken } = response.data?.data as {
+        username: string;
+        accessToken: string;
+      };
+
+      // setting access token to localStorage
+      localStorage.setItem("accessToken", accessToken as string);
       toast({
-        title: "Success",
-        description: response.data.message,
+        title: response.data.message,
       });
-      router.replace(`/verify/${username}`);
+      router.replace(`/chat/${username}`);
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse>;
       const errorMessage = AxiosError.response?.data.message;
       toast({
-        title: "Signup failed",
-        description: errorMessage,
+        title: errorMessage || "Something went wrong!",
         variant: "destructive",
       });
     } finally {
@@ -73,10 +75,10 @@ function Page() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-background mx-5">
-      <div className="w-full max-w-md p-8 space-y-8 bg-secondary rounded-lg shadow-md">
+    <div className="flex justify-center items-center pt-40 bg-background mx-5">
+      <div className="w-full max-w-md p-8 space-y-8 bg-primary-foreground rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
             Welcome back
           </h1>
           <p className="mb-4">Where have you been?</p>
@@ -96,18 +98,9 @@ function Page() {
                       onChange={(e) => {
                         field.onChange(e);
                       }}
+                      autoFocus
                     />
                   </FormControl>
-                  {isCheckingUsername && <Loader2 className="animate-spin" />}
-                  <p
-                    className={`text-sm ${
-                      usernameMessage == "Username Available"
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {usernameMessage}
-                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -128,7 +121,12 @@ function Page() {
             />
 
             <div className="flex items-center justify-center">
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                variant={"default"}
+                size={"lg"}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-3 h-4 w-4 animate-spin" />{" "}
@@ -143,8 +141,8 @@ function Page() {
         </Form>
         <div className="text-center mt-4">
           <p>
-            Don't have an Account?{" "}
-            <Link href="/sign-up" className="text-blue-500 hover:text-blue-700">
+            Don&apos;t have an Account?{" "}
+            <Link href="/sign-up" className="text-ring hover:text-chart-5">
               Sign up
             </Link>
           </p>

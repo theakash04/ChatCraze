@@ -14,7 +14,7 @@ class loginModel(BaseModel):
 
 class verifyModel(BaseModel):
     username: str
-    code: str
+    otp: str
 
 
 __all__ = ["signUpModel", "loginModel", "verifyModel"]
