@@ -15,9 +15,13 @@ interface ChatLayoutProps {
   onSelect: (user: string) => void;
   ws: WebSocket | null;
 }
+interface User {
+  username: string;
+  isOnline: boolean; // or boolean, depending on your actual data
+}
 
 export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelecteduser] = useState<string>("");
   const router = useRouter();
   const username = usePathname().split("/").pop();
@@ -29,8 +33,8 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
       try {
         const res = await useAxios.get<ApiResponse>("/getUsers");
         if (res.data.success) {
-          let temp = Array.isArray(res.data?.data) ? res.data.data.flat() : [];
-          temp = temp.filter((user: string) => user !== username);
+          let temp = Array.isArray(res.data?.data) ? res.data.data : [];
+          temp = temp.filter((user) => user.username !== username);
           setUsers(temp);
         }
       } catch (err) {
@@ -42,7 +46,7 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
     }
 
     getAllUsers();
-  }, [router, username]);
+  }, []);
 
   const logoutUser = async () => {
     localStorage.removeItem("accessToken");
@@ -102,19 +106,21 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
               ) : (
                 users.map((user, index) => (
                   <Button
-                    variant={selectedUser === user ? "secondary" : "ghost"}
+                    variant={
+                      selectedUser === user?.username ? "secondary" : "ghost"
+                    }
                     className="w-full justify-start"
                     key={index}
                     onClick={() => {
-                      onSelect(user);
-                      setSelecteduser(user);
+                      onSelect(user?.username);
+                      setSelecteduser(user?.username);
                     }}
                   >
                     <UserAvatar
-                      user={{ name: user }}
+                      user={{ name: user?.username }}
                       className="h-6 w-6 mr-2"
                     />
-                    {user}
+                    {user?.username}
                   </Button>
                 ))
               )}
@@ -125,12 +131,10 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
         <Separator />
 
         <div className="p-4 space-y-2">
-          <Link href="/settings">
-            <Button variant="ghost" className="w-full justify-start">
-              <Settings className="mr-2 h-5 w-5" />
-              Settings
-            </Button>
-          </Link>
+          <Button variant="ghost" className="w-full justify-start" disabled>
+            <Settings className="mr-2 h-5 w-5" />
+            Settings
+          </Button>
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive"

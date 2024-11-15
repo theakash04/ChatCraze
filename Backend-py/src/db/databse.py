@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException
 from src.model.req_body_model import signUpModel
 from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple
 
 load_dotenv()
 
@@ -25,7 +25,12 @@ class DatabaseManager:
             )
 
     def __execute_query(
-        self, query: str, param: Tuple = (), fetch: bool = False, fetch_type: int = 1
+        self,
+        query: str,
+        param: Tuple = (),
+        fetch: bool = False,
+        fetch_type: int = 1,
+        update: bool = False
     ) -> Any:
         conn = None
         cursor = None
@@ -33,7 +38,10 @@ class DatabaseManager:
             conn = self.get_connection()
             cursor = conn.cursor()
             cursor.execute(query, param)
+            conn.commit()
 
+            if update:
+                return cursor.rowcount
             if fetch:
                 if fetch_type == 1:
                     return cursor.fetchone()
@@ -42,7 +50,6 @@ class DatabaseManager:
                 else:
                     return cursor.fetchall()
 
-            conn.commit()
         except sqlite3.IntegrityError as err:
             if conn:
                 conn.rollback()
@@ -74,18 +81,23 @@ class DatabaseManager:
                 self.__execute_query(stmt)
 
     # insert or delete based on verification status
-    def insert_user_data(self, user: signUpModel, otp: str, verified: bool) -> bool:
+    def insert_user_data(
+        self,
+        user: signUpModel,
+        otp: str,
+        verified: bool
+    ) -> bool:
         if not verified:
             delete_query = "DELETE FROM users WHERE username = ? OR email = ?"
             self.__execute_query(delete_query, (user.username, user.email))
         else:
             insert_query = """
-                INSERT INTO users (username, email, password, otp, createdAt) 
+                INSERT INTO users (username, email, password, otp, createdAt)
                 VALUES (?,?,?,?,?)
             """
             self.__execute_query(
                 insert_query,
-                (user.username, user.email, user.password, otp, datetime.now()),
+                (user.username, user.email, user.password, otp, datetime.now(),)
             )
         return True
 
@@ -102,7 +114,7 @@ class DatabaseManager:
     # set user as verified
     def verified_user(self, username: str) -> bool:
         update_query = "UPDATE users SET isVerified = ? WHERE username = ?"
-        data = self.__execute_query(update_query, (True, username), fetch=True)
+        self.__execute_query(update_query, (True, username), fetch=True)
         return True
 
     # check if user exist or not
@@ -129,8 +141,19 @@ class DatabaseManager:
         return self.__execute_query(query, (username,), fetch=True)
 
     def getAllUsers(self):
-        query = "SELECT username FROM users"
-        return self.__execute_query(query, fetch=True, fetch_type=3)
+        query = "SELECT username, isOnline FROM users"
+        data = self.__execute_query(query, fetch=True, fetch_type=3)
+        users = [{"username": username, "isOnline": is_online}
+                 for username, is_online in data]
+        return users
+
+    def makeCustomQuery(self, query: str, param: Tuple, update=True):
+        return self.__execute_query(
+            query,
+            param=param,
+            fetch=True,
+            update=update
+        )
 
 
 __all__ = ["DatabaseManager"]

@@ -4,13 +4,23 @@ from datetime import datetime, timedelta
 from typing import Annotated
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from fastapi import APIRouter, HTTPException, Depends, Query, Response, Header
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Depends,
+    Query,
+    Response,
+    Header,
+)
 from fastapi_login import LoginManager, exceptions
 from fastapi.security import OAuth2PasswordRequestForm
 from src.utils.ApiResponse import Apiresponse
 from src.utils.email import send_mail
 from src.utils.otp_gen import generate_otp
-from src.utils.email_temp import create_otp_mail_template, create_verified_mail_template
+from src.utils.email_temp import (
+    create_otp_mail_template,
+    create_verified_mail_template,
+)
 from src.model.req_body_model import signUpModel, verifyModel
 from src.db.databse import DatabaseManager
 
@@ -50,7 +60,8 @@ def create_user_account(user: signUpModel):
     isEmailExist = db_manager.user_exists(email=user.email)
     if isEmailExist:
         raise HTTPException(
-            status_code=409, detail="A user with this email ID is already registered."
+            status_code=409,
+            detail="A user with this email ID is already registered."
         )
 
     # Common logic for sending OTP and inserting user data
@@ -74,7 +85,7 @@ def create_user_account(user: signUpModel):
             )
             return Apiresponse(
                 201,
-                message="Account created successfully. An OTP has been sent to your email for verification.",
+                message="Account created successfully. An OTP has been sent to your email for verification."
             )
         else:
             raise HTTPException(
@@ -154,9 +165,10 @@ def login_user(
 
 # route to verify and remake accessToken
 @router.get("/verify_access_token", status_code=200)
-def verify_access_token(token: Annotated[str | None, Header()]):
+def verify_access_token(res: Response, token: Annotated[str | None, Header()]):
     # Verifying access token from header
     if not token:
+        print("here1")
         raise HTTPException(status_code=401, detail="Access token is missing.")
 
     try:
@@ -172,21 +184,30 @@ def verify_access_token(token: Annotated[str | None, Header()]):
         user = db_manager.user_exists(username)
 
         if not user:
+            res.delete_cookie(
+                "accessToken",
+                path="/",
+                secure=True,
+                samesite="Lax"
+            )
             raise HTTPException(status_code=401, detail="User not found.")
 
         return Apiresponse(statusCode=200, data={"username": username})
 
     except jwt.ExpiredSignatureError:
+        res.delete_cookie("accessToken", path="/",
+                          secure=True, samesite="Lax")
         raise HTTPException(status_code=401, detail="Token has expired.")
 
-    except jwt.JWTError as e:
+    except jwt.PyJWTError as e:
+        res.delete_cookie("accessToken", path="/",
+                          secure=True, samesite="Lax")
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
 @router.get("/logout", status_code=200)
 def logoutUser(res: Response):
-    res.delete_cookie("accessToken", path="/", secure=True, samesite="None")
-
+    res.delete_cookie("accessToken", path="/", secure=True, samesite="Lax")
     return Apiresponse(statusCode=200, message="Logged out successfully")
 
 

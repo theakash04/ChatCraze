@@ -2,7 +2,6 @@ from typing import Dict
 from fastapi import WebSocket
 
 
-
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
@@ -21,6 +20,7 @@ class ConnectionManager:
             await websocket.send_text(message)
 
     async def broadcast(self, message: str):
+        print(message)
         for connection in self.active_connections.values():
             await connection.send_text(message)
 

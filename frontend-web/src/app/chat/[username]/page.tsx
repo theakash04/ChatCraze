@@ -13,11 +13,13 @@ import { useToast } from "@/hooks/use-toast";
 export default function ChatPage() {
   const [message, setMessage] = useState<messages[]>([
     {
+      type: "message",
       from: "theakash04",
       to: "sky",
       message: "Hello sky!",
     },
     {
+      type: "message",
       from: "sky",
       to: "theakash04",
       message: "Hello Akash",
@@ -28,6 +30,7 @@ export default function ChatPage() {
   const [inpMsg, setInpmsg] = useState("");
   const ws = useRef<WebSocket | null>(null);
   const msgEndScroll = useRef<HTMLDivElement | null>(null);
+  const { toast } = useToast();
 
   function scrollToEnd() {
     msgEndScroll.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,17 +47,33 @@ export default function ChatPage() {
 
     ws.current.onmessage = (e) => {
       const message = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-      setMessage((prev) => [...prev, message]);
+      if (message.type === "message") {
+        setMessage((prev) => [...prev, message]);
+        if (message.from !== selectedUser) {
+          toast({
+            title: `New Message from ${message.from}`,
+          });
+          console.log("somewhat working");
+        }
+      } else if (message.type === "offline") {
+        toast({
+          title: message.message,
+          description: "Message is not delivered!",
+        });
+      }
     };
 
-    ws.current.onclose = () => {
-      console.log("Websocket closed!");
-    };
+    function handleUnload() {
+      ws.current?.close();
+    }
+
+    window.addEventListener("unload", handleUnload);
 
     return () => {
       ws.current?.close();
+      window.removeEventListener("unload", handleUnload);
     };
-  }, [username]);
+  }, [username, selectedUser]);
 
   function getMessageForSelectedUser() {
     return message.filter(
@@ -70,13 +89,19 @@ export default function ChatPage() {
     if (inpMsg == "") return;
 
     // sending msg to other using websocket
-    const message = { from: username, to: selectedUser, message: inpMsg };
+    const message = {
+      type: "message",
+      from: username,
+      to: selectedUser,
+      message: inpMsg,
+    };
     ws.current?.send(JSON.stringify(message));
 
     // Handle sending message
     setMessage((prev) => [
       ...prev,
       {
+        type: "message",
         from: username as string,
         to: selectedUser as string,
         message: inpMsg as string,
