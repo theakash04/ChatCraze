@@ -1,6 +1,6 @@
-"use client";
-import { ServerCrash } from "lucide-react";
-import { Button } from "@/components/ui/button";
+'use client';
+import { ServerCrash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   return (
@@ -24,7 +24,7 @@ export default function Page() {
           <Button
             variant="default"
             size="lg"
-            onClick={() => window.location.replace("/")}
+            onClick={() => window.location.replace('/')}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
             Try Again

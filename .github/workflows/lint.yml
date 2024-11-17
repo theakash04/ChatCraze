@@ -1,0 +1,56 @@
+name: Linting and Formatting check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies for frontend
+        run: |
+          cd frontend
+          npm install --legacy-peer-deps
+
+      - name: Run ESLint for Next.js frontend
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Check Formatting
+        run: |
+          cd frontend
+          npm run prettier:check
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies for backend
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+
+

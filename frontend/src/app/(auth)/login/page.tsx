@@ -1,12 +1,12 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { signUpSchema } from "@/model/signUpSchema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signInSchema } from "@/model/loginSchema";
-import axios, { AxiosError } from "axios";
-import { z } from "zod";
+'use client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { signUpSchema } from '@/model/signUpSchema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { signInSchema } from '@/model/loginSchema';
+import axios, { AxiosError } from 'axios';
+import { z } from 'zod';
 import {
   Form,
   FormControl,
@@ -14,13 +14,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { ApiResponse } from "@/types/ApiResponse";
-import Link from "next/link";
+} from '@/components/ui/form';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { ApiResponse } from '@/types/ApiResponse';
+import Link from 'next/link';
 
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,8 +32,8 @@ function Page() {
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      username: '',
+      password: '',
     },
   });
 
@@ -45,10 +45,10 @@ function Page() {
         data,
         {
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
           withCredentials: true,
-        },
+        }
       );
 
       const { username, accessToken } = response.data?.data as {
@@ -57,7 +57,7 @@ function Page() {
       };
 
       // setting access token to localStorage
-      localStorage.setItem("accessToken", accessToken as string);
+      localStorage.setItem('accessToken', accessToken as string);
       toast({
         title: response.data.message,
       });
@@ -66,8 +66,8 @@ function Page() {
       const AxiosError = error as AxiosError<ApiResponse>;
       const errorMessage = AxiosError.response?.data.message;
       toast({
-        title: errorMessage || "Something went wrong!",
-        variant: "destructive",
+        title: errorMessage || 'Something went wrong!',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -124,16 +124,16 @@ function Page() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                variant={"default"}
-                size={"lg"}
+                variant={'default'}
+                size={'lg'}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-3 h-4 w-4 animate-spin" />{" "}
+                    <Loader2 className="mr-3 h-4 w-4 animate-spin" />{' '}
                     Submitting....
                   </>
                 ) : (
-                  "Login"
+                  'Login'
                 )}
               </Button>
             </div>
@@ -141,7 +141,7 @@ function Page() {
         </Form>
         <div className="text-center mt-4">
           <p>
-            Don&apos;t have an Account?{" "}
+            Don&apos;t have an Account?{' '}
             <Link href="/sign-up" className="text-ring hover:text-chart-5">
               Sign up
             </Link>

@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 140  # Set a custom line length for this folder
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | .env
+  | \__pycache__
+  | migrations
+)/
+'''
+

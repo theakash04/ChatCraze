@@ -1,7 +1,6 @@
 import os
 import resend
 from dotenv import load_dotenv
-from typing import Dict
 
 load_dotenv()
 
@@ -14,16 +13,16 @@ def send_mail(
     username: str,
     html_template: str,
     verifycode: str = None,
-) -> Dict:
-    
+):
+
     params: resend.Emails.SendParams = {
         "from": "chatcraze <chatcraze@akashtwt.tech>",
         "to": [email],
         "subject": "Verify your account now!",
-        "html": html_template
+        "html": html_template,
     }
     email: resend.Email = resend.Emails.send(params)
     return email
 
 
-__all__ = ["send_otp_mail"]
+__all__ = ["send_mail"]

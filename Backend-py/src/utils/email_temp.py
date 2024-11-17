@@ -99,8 +99,6 @@ def create_verified_mail_template(username: str) -> str:
     """
 
 
-
-
 __all__ = [
     "create_otp_mail_template",
     "create_verified_mail_template",

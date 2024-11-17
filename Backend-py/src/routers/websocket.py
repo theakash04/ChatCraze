@@ -18,26 +18,27 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     db_manager.makeCustomQuery(query=query, param=(client_id,))
     try:
         while True:
-            # this is a setup for brodacsting to all
-            '''
+
+            # data format of message
+            """
             data format is {
                 type: "message"
                 from: "user1",
                 to: "user2",
                 message: "Hello there!"
             }
-            '''
+            """
             # data format if reciever is offline
-            '''
+            """
             {
                 type: "offline",
                 message: "user is offline"
             }
-            '''
+            """
 
             data = await websocket.receive_text()
             message = json.loads(data)
-            receiver_name = message['to']
+            receiver_name = message["to"]
 
             isOnline = db_manager.makeCustomQuery(
                 query="SELECT isOnline FROM users WHERE username = ?",
@@ -45,27 +46,18 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 update=False,
             )
 
-            offline = {
-                "type": "offline",
-                "message": f"{receiver_name} is offline"
-            }
+            offline = {"type": "offline", "message": f"{
+                receiver_name} is offline"}
 
             if isOnline[0]:
-                print("yo2", isOnline)
                 await manager.send_personal_message(data, receiver_name)
             else:
-                print("yo")
-                await manager.send_personal_message(
-                    json.dumps(offline),
-                    client_id
-                )
+                await manager.send_personal_message(json.dumps(offline), client_id)
 
     except WebSocketDisconnect:
         manager.disconnect(client_id)
         query = "UPDATE users SET isOnline = FALSE WHERE username = ?"
         db_manager.makeCustomQuery(query=query, param=(client_id,))
         print("user diconnected", client_id)
-        # await manager.broadcast(f"Client #{client_id} left the chat")
-
 
 __all__ = ["router", "manager"]

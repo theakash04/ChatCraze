@@ -60,9 +60,7 @@ def create_user_account(user: signUpModel):
     isEmailExist = db_manager.user_exists(email=user.email)
     if isEmailExist:
         raise HTTPException(
-            status_code=409,
-            detail="A user with this email ID is already registered."
-        )
+            status_code=409, detail="A user with this email ID is already registered.")
 
     # Common logic for sending OTP and inserting user data
     def send_otp_and_create_user(verified_status: bool):
@@ -83,10 +81,7 @@ def create_user_account(user: signUpModel):
                 otp=code,
                 verified=verified_status,
             )
-            return Apiresponse(
-                201,
-                message="Account created successfully. An OTP has been sent to your email for verification."
-            )
+            return Apiresponse(201, message="Account created successfully. An OTP has been sent to your email for verification.")
         else:
             raise HTTPException(
                 status_code=500,
@@ -105,10 +100,7 @@ def verify_user(req: verifyModel):
     if req.otp != result["otp"]:
         raise HTTPException(status_code=403, detail="OTP is not valid!")
 
-    if (
-        datetime.now() -
-        datetime.strptime(result["createdAt"], "%Y-%m-%d %H:%M:%S.%f")
-    ) >= timedelta(minutes=10):
+    if (datetime.now() - datetime.strptime(result["createdAt"], "%Y-%m-%d %H:%M:%S.%f")) >= timedelta(minutes=10):
         raise HTTPException(status_code=403, detail="OTP has expired")
 
     db_manager.verified_user(username=req.username)
@@ -149,18 +141,17 @@ def login_user(
 
     expiration_date = datetime.utcnow() + timedelta(days=7)
 
-    access_token = jwt.encode({"username": username,
-                               "exp": expiration_date},
-                              auth_secret,
-                              jwt_algorithm)
+    access_token = jwt.encode(
+        {"username": username, "exp": expiration_date}, auth_secret, jwt_algorithm)
 
-    response.set_cookie(key="accessToken", value=access_token,
-                        secure=False, samesite="Lax", httponly=True,)
-    return Apiresponse(
-        200,
-        data={"accessToken": access_token, "username": username},
-        message="user loggedIn successfully"
+    response.set_cookie(
+        key="accessToken",
+        value=access_token,
+        secure=False,
+        samesite="lax",
+        httponly=True,
     )
+    return Apiresponse(200, data={"accessToken": access_token, "username": username}, message="user loggedIn successfully")
 
 
 # route to verify and remake accessToken
@@ -184,30 +175,24 @@ def verify_access_token(res: Response, token: Annotated[str | None, Header()]):
         user = db_manager.user_exists(username)
 
         if not user:
-            res.delete_cookie(
-                "accessToken",
-                path="/",
-                secure=True,
-                samesite="Lax"
-            )
+            res.delete_cookie("accessToken", path="/",
+                              secure=True, samesite="lax")
             raise HTTPException(status_code=401, detail="User not found.")
 
         return Apiresponse(statusCode=200, data={"username": username})
 
     except jwt.ExpiredSignatureError:
-        res.delete_cookie("accessToken", path="/",
-                          secure=True, samesite="Lax")
+        res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
         raise HTTPException(status_code=401, detail="Token has expired.")
 
     except jwt.PyJWTError as e:
-        res.delete_cookie("accessToken", path="/",
-                          secure=True, samesite="Lax")
+        res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
 @router.get("/logout", status_code=200)
 def logoutUser(res: Response):
-    res.delete_cookie("accessToken", path="/", secure=True, samesite="Lax")
+    res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
     return Apiresponse(statusCode=200, message="Logged out successfully")
 
 

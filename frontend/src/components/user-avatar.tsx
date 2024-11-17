@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from 'lucide-react';
 
 interface UserAvatarProps {
   user: {
@@ -18,9 +18,9 @@ export function UserAvatar({ user, className }: UserAvatarProps) {
           <User className="h-4 w-4" />
         ) : (
           user.name
-            .split(" ")
+            .split(' ')
             .map((n) => n[0])
-            .join("")
+            .join('')
             .toUpperCase()
         )}
       </AvatarFallback>

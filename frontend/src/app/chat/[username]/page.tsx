@@ -1,39 +1,39 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { ChatLayout } from "@/components/chat-layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { UserAvatar } from "@/components/user-avatar";
-import { Send } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { messages } from "@/types/messages";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef, useState } from 'react';
+import { ChatLayout } from '@/components/chat-layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { UserAvatar } from '@/components/user-avatar';
+import { Send } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { messages } from '@/types/messages';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ChatPage() {
   const [message, setMessage] = useState<messages[]>([
     {
-      type: "message",
-      from: "theakash04",
-      to: "sky",
-      message: "Hello sky!",
+      type: 'message',
+      from: 'theakash04',
+      to: 'sky',
+      message: 'Hello sky!',
     },
     {
-      type: "message",
-      from: "sky",
-      to: "theakash04",
-      message: "Hello Akash",
+      type: 'message',
+      from: 'sky',
+      to: 'theakash04',
+      message: 'Hello Akash',
     },
   ]);
-  const [selectedUser, setSelectedUser] = useState<string>("");
-  const username = usePathname().split("/").pop();
-  const [inpMsg, setInpmsg] = useState("");
+  const [selectedUser, setSelectedUser] = useState<string>('');
+  const username = usePathname().split('/').pop();
+  const [inpMsg, setInpmsg] = useState('');
   const ws = useRef<WebSocket | null>(null);
   const msgEndScroll = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   function scrollToEnd() {
-    msgEndScroll.current?.scrollIntoView({ behavior: "smooth" });
+    msgEndScroll.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
   useEffect(() => {
@@ -42,23 +42,23 @@ export default function ChatPage() {
 
   useEffect(() => {
     ws.current = new WebSocket(
-      `${process.env.NEXT_PUBLIC_WEB_SOCKET}/${username}`,
+      `${process.env.NEXT_PUBLIC_WEB_SOCKET}/${username}`
     );
 
     ws.current.onmessage = (e) => {
-      const message = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-      if (message.type === "message") {
+      const message = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+      if (message.type === 'message') {
         setMessage((prev) => [...prev, message]);
         if (message.from !== selectedUser) {
           toast({
             title: `New Message from ${message.from}`,
           });
-          console.log("somewhat working");
+          console.log('somewhat working');
         }
-      } else if (message.type === "offline") {
+      } else if (message.type === 'offline') {
         toast({
           title: message.message,
-          description: "Message is not delivered!",
+          description: 'Message is not delivered!',
         });
       }
     };
@@ -67,11 +67,11 @@ export default function ChatPage() {
       ws.current?.close();
     }
 
-    window.addEventListener("unload", handleUnload);
+    window.addEventListener('unload', handleUnload);
 
     return () => {
       ws.current?.close();
-      window.removeEventListener("unload", handleUnload);
+      window.removeEventListener('unload', handleUnload);
     };
   }, [username, selectedUser]);
 
@@ -79,18 +79,18 @@ export default function ChatPage() {
     return message.filter(
       (msg) =>
         (msg.to === selectedUser && msg.from === username) ||
-        (msg.from === selectedUser && msg.to === username),
+        (msg.from === selectedUser && msg.to === username)
     );
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (inpMsg == "") return;
+    if (inpMsg == '') return;
 
     // sending msg to other using websocket
     const message = {
-      type: "message",
+      type: 'message',
       from: username,
       to: selectedUser,
       message: inpMsg,
@@ -101,13 +101,13 @@ export default function ChatPage() {
     setMessage((prev) => [
       ...prev,
       {
-        type: "message",
+        type: 'message',
         from: username as string,
         to: selectedUser as string,
         message: inpMsg as string,
       },
     ]);
-    setInpmsg("");
+    setInpmsg('');
   };
 
   return (
@@ -115,7 +115,7 @@ export default function ChatPage() {
       ws={ws.current}
       onSelect={(user: string) => setSelectedUser(user)}
     >
-      {selectedUser === "" ? (
+      {selectedUser === '' ? (
         <NotSelectedUser />
       ) : (
         <div className="flex-1 flex flex-col max-h-screen">
@@ -137,12 +137,12 @@ export default function ChatPage() {
             {selectedUser && getMessageForSelectedUser().length > 0 ? (
               getMessageForSelectedUser().map((msg, index) => (
                 <div
-                  className={`flex ${msg.from === username ? "items-end justify-end" : "items-start justify-start"} gap-2`}
+                  className={`flex ${msg.from === username ? 'items-end justify-end' : 'items-start justify-start'} gap-2`}
                   key={index}
                 >
                   <div
                     ref={msgEndScroll}
-                    className={`${msg.from === username ? "bg-green-800 rounded-tr-none" : "bg-gray-600 rounded-tl-none"} text-lg p-3 rounded-lg max-w-[70%] `}
+                    className={`${msg.from === username ? 'bg-green-800 rounded-tr-none' : 'bg-gray-600 rounded-tl-none'} text-lg p-3 rounded-lg max-w-[70%] `}
                   >
                     <p>{msg.message}</p>
                   </div>

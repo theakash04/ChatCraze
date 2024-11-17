@@ -1,14 +1,13 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { UserAvatar } from "@/components/user-avatar";
-import { MessageSquare, Settings, LogOut, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useAxios } from "@/hooks/useAxios";
-import { ApiResponse } from "@/types/ApiResponse";
-import { usePathname, useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { UserAvatar } from '@/components/user-avatar';
+import { Settings, LogOut, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useAxios } from '@/hooks/useAxios';
+import { ApiResponse } from '@/types/ApiResponse';
+import { usePathname, useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatLayoutProps {
   children: React.ReactNode;
@@ -22,24 +21,24 @@ interface User {
 
 export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelecteduser] = useState<string>("");
+  const [selectedUser, setSelecteduser] = useState<string>('');
   const router = useRouter();
-  const username = usePathname().split("/").pop();
+  const username = usePathname().split('/').pop();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function getAllUsers() {
       try {
-        const res = await useAxios.get<ApiResponse>("/getUsers");
+        const res = await useAxios.get<ApiResponse>('/getUsers');
         if (res.data.success) {
           let temp = Array.isArray(res.data?.data) ? res.data.data : [];
           temp = temp.filter((user) => user.username !== username);
           setUsers(temp);
         }
       } catch (err) {
-        console.error("Error fetching users:", err);
-        router.push("/server-down");
+        console.error('Error fetching users:', err);
+        router.push('/server-down');
       } finally {
         setIsLoading(false);
       }
@@ -49,9 +48,9 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
   }, []);
 
   const logoutUser = async () => {
-    localStorage.removeItem("accessToken");
+    localStorage.removeItem('accessToken');
     useAxios
-      .get("/logout")
+      .get('/logout')
       .then((res) => {
         toast({
           title: res.data.message,
@@ -61,8 +60,8 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
       })
       .catch((err) => {
         toast({
-          title: "Logout failed",
-          description: "some unexpected error occured while logging out",
+          title: 'Logout failed',
+          description: 'some unexpected error occured while logging out',
         });
         console.log(err);
       });
@@ -107,7 +106,7 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
                 users.map((user, index) => (
                   <Button
                     variant={
-                      selectedUser === user?.username ? "secondary" : "ghost"
+                      selectedUser === user?.username ? 'secondary' : 'ghost'
                     }
                     className="w-full justify-start"
                     key={index}

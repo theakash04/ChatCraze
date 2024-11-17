@@ -1,42 +1,42 @@
-"use client";
+'use client';
 
-import { usePathname, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { OTPFormValues } from "@/types/otpFrom";
-import { otpSchema } from "@/model/otpSchema";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import axios, { AxiosError } from "axios";
-import { ApiResponse } from "@/types/ApiResponse";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { usePathname, useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { OTPFormValues } from '@/types/otpFrom';
+import { otpSchema } from '@/model/otpSchema';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import axios, { AxiosError } from 'axios';
+import { ApiResponse } from '@/types/ApiResponse';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const username = usePathname().split("/").pop();
+  const username = usePathname().split('/').pop();
   const router = useRouter();
 
   const form = useForm<OTPFormValues>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
-      otp: "",
+      otp: '',
     },
   });
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     if (isNaN(Number(value))) {
-      e.target.value = "";
+      e.target.value = '';
     }
   }
 
@@ -47,7 +47,7 @@ function Page() {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/verify`,
-        { username, otp },
+        { username, otp }
       );
       toast({
         title: response.data.message,
@@ -56,10 +56,10 @@ function Page() {
     } catch (error) {
       const AxiosError = error as AxiosError<ApiResponse>;
       const errorMessage =
-        AxiosError.response?.data.message || "Submission failed";
+        AxiosError.response?.data.message || 'Submission failed';
       toast({
         title: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -106,7 +106,7 @@ function Page() {
             <div className="flex items-center justify-center">
               <Button
                 type="submit"
-                size={"lg"}
+                size={'lg'}
                 disabled={isSubmitting}
                 className="font-bold text-lg"
               >
@@ -115,7 +115,7 @@ function Page() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </>
                 ) : (
-                  "Verify"
+                  'Verify'
                 )}
               </Button>
             </div>
