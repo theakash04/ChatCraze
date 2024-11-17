@@ -43,6 +43,7 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (err) {
+      console.log(err)
       // if server down redirect to /server-down page
       return NextResponse.redirect(new URL("/server-down", request.url));
     }
