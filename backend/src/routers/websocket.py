@@ -1,7 +1,7 @@
 from src.services.websocket_connectionManager import ConnectionManager
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import json
-from src.db.databse import DatabaseManager
+from src.db.database import DatabaseManager
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
 

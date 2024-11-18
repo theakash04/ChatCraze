@@ -1,4 +1,4 @@
-from src.db.databse import DatabaseManager
+from src.db.database import DatabaseManager
 from fastapi import APIRouter
 from src.utils.ApiResponse import Apiresponse
 

@@ -20,9 +20,16 @@ class DatabaseManager:
             conn = sqlite3.connect(self.db_path)
             return conn
         except sqlite3.Error as err:
-            raise HTTPException(status_code=500, detail=f"Error connecting to database: {err}")
+            raise HTTPException(
+                status_code=500, detail=f"Error connecting to database: {err}")
 
-    def __execute_query(self, query: str, param: Tuple = (), fetch: bool = False, fetch_type: int = 1, update: bool = False) -> Any:
+    def __execute_query(self,
+                        query: str,
+                        param: Tuple = (),
+                        fetch: bool = False,
+                        fetch_type: int = 1,
+                        update: bool = False
+                        ) -> Any:
         conn = None
         cursor = None
         try:
@@ -44,15 +51,18 @@ class DatabaseManager:
         except sqlite3.IntegrityError as err:
             if conn:
                 conn.rollback()
-            raise HTTPException(status_code=409, detail=f"Integrity error: {err}")
+            raise HTTPException(
+                status_code=409, detail=f"Integrity error: {err}")
         except sqlite3.ProgrammingError as err:
             if conn:
                 conn.rollback()
-            raise HTTPException(status_code=400, detail=f"Programming error: {err}")
+            raise HTTPException(
+                status_code=400, detail=f"Programming error: {err}")
         except Exception as err:
             if conn:
                 conn.rollback()
-            raise HTTPException(status_code=500, detail=f"Database error occurred: {str(err)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error occurred: {str(err)}")
         finally:
             cursor.close()
             conn.close()
@@ -108,7 +118,8 @@ class DatabaseManager:
     # check if user exist or not
     def user_exists(self, username: str = None, email: str = None):
         if not (username or email):
-            raise ValueError("At least one of username or email must be provided.")
+            raise ValueError(
+                "At least one of username or email must be provided.")
 
         # Build the SQL query dynamically based on input
         conditions, parameters = [], []
@@ -130,7 +141,8 @@ class DatabaseManager:
     def getAllUsers(self):
         query = "SELECT username, isOnline FROM users"
         data = self.__execute_query(query, fetch=True, fetch_type=3)
-        users = [{"username": username, "isOnline": is_online} for username, is_online in data]
+        users = [{"username": username, "isOnline": is_online}
+                 for username, is_online in data]
         return users
 
     def makeCustomQuery(self, query: str, param: Tuple, update=True):

@@ -22,7 +22,7 @@ from src.utils.email_temp import (
     create_verified_mail_template,
 )
 from src.model.req_body_model import signUpModel, verifyModel
-from src.db.databse import DatabaseManager
+from src.db.database import DatabaseManager
 
 router = APIRouter(prefix="/api/v1", tags=["API"])
 
@@ -147,8 +147,8 @@ def login_user(
     response.set_cookie(
         key="accessToken",
         value=access_token,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         httponly=True,
     )
     return Apiresponse(200, data={"accessToken": access_token, "username": username}, message="user loggedIn successfully")
@@ -176,23 +176,25 @@ def verify_access_token(res: Response, token: Annotated[str | None, Header()]):
 
         if not user:
             res.delete_cookie("accessToken", path="/",
-                              secure=True, samesite="lax")
+                              secure=True, samesite="none")
             raise HTTPException(status_code=401, detail="User not found.")
 
         return Apiresponse(statusCode=200, data={"username": username})
 
     except jwt.ExpiredSignatureError:
-        res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
+        res.delete_cookie("accessToken", path="/",
+                          secure=True, samesite="none")
         raise HTTPException(status_code=401, detail="Token has expired.")
 
     except jwt.PyJWTError as e:
-        res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
+        res.delete_cookie("accessToken", path="/",
+                          secure=True, samesite="none")
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
 @router.get("/logout", status_code=200)
 def logoutUser(res: Response):
-    res.delete_cookie("accessToken", path="/", secure=True, samesite="lax")
+    res.delete_cookie("accessToken", path="/", secure=True, samesite="none")
     return Apiresponse(statusCode=200, message="Logged out successfully")
 
 

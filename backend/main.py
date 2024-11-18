@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from src.db.databse import DatabaseManager
+from src.db.database import DatabaseManager
 from fastapi.middleware.cors import CORSMiddleware
 from src.routers.auth import router as auth_router
 from src.routers.websocket import router as ws_router
