@@ -1,27 +1,33 @@
-import sqlite3
 import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from src.model.req_body_model import signUpModel
 from datetime import datetime
 from typing import Any, Tuple
+import psycopg
+from psycopg.rows import dict_row
 
 load_dotenv()
 
-DATABASE = os.environ["DATABASE"]
-
+conn_params = {
+    "host": os.environ["DB_HOST"],
+    "dbname": os.environ["DB_NAME"],
+    "user": os.environ["DB_USER"],
+    "password": os.environ["DB_PASS"],
+    "port": os.environ["DB_PORT"],
+}
 
 class DatabaseManager:
-    def __init__(self):
-        self.db_path = DATABASE
 
-    def get_connection(self) -> sqlite3.Connection:
+    def get_connection(self):
+        """Establish a connection to the PostgreSQL database."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = psycopg.connect(**conn_params, row_factory=dict_row)
             return conn
-        except sqlite3.Error as err:
+        except psycopg.Error as err:
             raise HTTPException(
-                status_code=500, detail=f"Error connecting to database: {err}")
+                status_code=500, detail=f"Error connecting to database: {err}"
+            )
 
     def __execute_query(self,
                         query: str,
@@ -48,12 +54,12 @@ class DatabaseManager:
                 else:
                     return cursor.fetchall()
 
-        except sqlite3.IntegrityError as err:
+        except psycopg.IntegrityError as err:
             if conn:
                 conn.rollback()
             raise HTTPException(
                 status_code=409, detail=f"Integrity error: {err}")
-        except sqlite3.ProgrammingError as err:
+        except psycopg.ProgrammingError as err:
             if conn:
                 conn.rollback()
             raise HTTPException(
@@ -64,11 +70,13 @@ class DatabaseManager:
             raise HTTPException(
                 status_code=500, detail=f"Database error occurred: {str(err)}")
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
-    # initialize database with schema file
     def init_db(self):
+        """Initialize the database with the schema file."""
         current_directory = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(current_directory, "schema.sql"), "r") as f:
             schema = f.read()
@@ -77,15 +85,15 @@ class DatabaseManager:
             if stmt:
                 self.__execute_query(stmt)
 
-    # insert or delete based on verification status
     def insert_user_data(self, user: signUpModel, otp: str, verified: bool) -> bool:
+        """Insert or delete based on verification status."""
         if not verified:
-            delete_query = "DELETE FROM users WHERE username = ? OR email = ?"
+            delete_query = "DELETE FROM users WHERE username = %s OR email = %s"
             self.__execute_query(delete_query, (user.username, user.email))
         else:
             insert_query = """
-                INSERT INTO users (username, email, password, otp, createdAt)
-                VALUES (?,?,?,?,?)
+                INSERT INTO users (username, email, password, otp, createdat)
+                VALUES (%s, %s, %s, %s, %s)
             """
             self.__execute_query(
                 insert_query,
@@ -99,54 +107,51 @@ class DatabaseManager:
             )
         return True
 
-    # check and return the otp
     def verify_otp(self, username: str) -> dict[str, Any]:
-        query = "SELECT otp, createdAt, email FROM users WHERE username = ?"
+        """Check and return the OTP for the given username."""
+        query = "SELECT otp, createdat, email FROM users WHERE username = %s"
         result = self.__execute_query(query, (username,), fetch=True)
         if result:
-            otp, createdAt, email = result
-            return {"otp": otp, "createdAt": createdAt, "email": email}
+            return result  # Return the first result as a dictionary (RealDictCursor)
         else:
             raise HTTPException(status_code=404, detail="User not found!")
 
-    # set user as verified
     def verified_user(self, username: str) -> bool:
-        update_query = "UPDATE users SET isVerified = ? WHERE username = ?"
-        self.__execute_query(update_query, (True, username), fetch=True)
+        """Set the user as verified."""
+        update_query = "UPDATE users SET isverified = %s WHERE username = %s"
+        self.__execute_query(update_query, (True, username))
         return True
 
-    # check if user exist or not
     def user_exists(self, username: str = None, email: str = None):
+        """Check if a user exists based on username or email."""
         if not (username or email):
-            raise ValueError(
-                "At least one of username or email must be provided.")
+            raise ValueError("At least one of username or email must be provided.")
 
-        # Build the SQL query dynamically based on input
         conditions, parameters = [], []
         if username:
-            conditions.append("username = ?")
+            conditions.append("username = %s")
             parameters.append(username)
         if email:
-            conditions.append("email = ?")
+            conditions.append("email = %s")
             parameters.append(email)
 
-        # Join conditions with OR if any condition exists
-        query = "SELECT isVerified FROM users WHERE " + " OR ".join(conditions)
+        query = "SELECT isverified FROM users WHERE " + " OR ".join(conditions)
         return self.__execute_query(query, tuple(parameters), fetch=True)
 
     def getPass(self, username: str):
-        query = "SELECT password FROM users WHERE username = ?"
-        return self.__execute_query(query, (username,), fetch=True)
+        """Get the password for the given username."""
+        query = "SELECT password FROM users WHERE username = %s"
+        result = self.__execute_query(query, (username,), fetch=True)
+        return result['password'] if result else None
 
     def getAllUsers(self):
-        query = "SELECT username, isOnline FROM users"
+        """Get all users."""
+        query = "SELECT username, isonline FROM users"
         data = self.__execute_query(query, fetch=True, fetch_type=3)
-        users = [{"username": username, "isOnline": is_online}
-                 for username, is_online in data]
-        return users
+        return [{"username": row["username"], "isOnline": row["isonline"]} for row in data]
 
     def makeCustomQuery(self, query: str, param: Tuple, update=True):
+        """Execute custom SQL queries."""
         return self.__execute_query(query, param=param, fetch=True, update=update)
-
 
 __all__ = ["DatabaseManager"]

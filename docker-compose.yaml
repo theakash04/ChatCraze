@@ -1,0 +1,53 @@
+services:
+  # FastAPI backend
+  backend:
+    build: ./backend
+    container_name: chatcraze-backend
+    volumes:
+      - ./backend/db:/app/backend/db
+    networks:
+      - app-network
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - RESEND_API=${RESEND_API}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - PROD=${PROD}
+    depends_on:
+      - postgres
+
+  # Next.js frontend
+  frontend:
+    build: ./frontend
+    container_name: chatcraze-frontend
+    networks:
+      - app-network
+    ports:
+      - "3000:3000"
+
+  # PostgreSQL service
+  postgres:
+    image: postgres:latest
+    container_name: chatcraze-postgress
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

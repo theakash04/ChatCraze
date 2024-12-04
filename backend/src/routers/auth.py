@@ -23,12 +23,13 @@ from src.utils.email_temp import (
 )
 from src.model.req_body_model import signUpModel, verifyModel
 from src.db.database import DatabaseManager
+from src.utils.manage_cookies import manage_cookie
 
-router = APIRouter(prefix="/api/v1", tags=["API"])
+router = APIRouter(prefix="/v1", tags=["API"])
 
 # jwt usable variables
 jwt_algorithm = "HS256"
-auth_secret = os.environ["auth_secret"]
+auth_secret = os.environ["AUTH_SECRET"]
 
 db_manager = DatabaseManager()
 loginManager = LoginManager(
@@ -100,14 +101,14 @@ def verify_user(req: verifyModel):
     if req.otp != result["otp"]:
         raise HTTPException(status_code=403, detail="OTP is not valid!")
 
-    if (datetime.now() - datetime.strptime(result["createdAt"], "%Y-%m-%d %H:%M:%S.%f")) >= timedelta(minutes=10):
+    if (datetime.now() - datetime.strptime(str(result["createdat"]), "%Y-%m-%d %H:%M:%S.%f")) >= timedelta(minutes=10):
         raise HTTPException(status_code=403, detail="OTP has expired")
 
     db_manager.verified_user(username=req.username)
 
     verify_mail = create_verified_mail_template(username=req.username)
     send_mail(username=req.username,
-              email=result["email"], html_template=verify_mail)
+              email=result["email"], html_template=verify_mail, subject="Your Account is Now Verified")
 
     return Apiresponse(200, message="User verified successfully!")
 
@@ -135,7 +136,7 @@ def login_user(
     hashedPass = db_manager.getPass(username)
 
     try:
-        ph.verify(hashedPass[0], password)
+        ph.verify(hashedPass, password)
     except VerifyMismatchError:
         raise exceptions.InvalidCredentialsException
 
@@ -144,22 +145,15 @@ def login_user(
     access_token = jwt.encode(
         {"username": username, "exp": expiration_date}, auth_secret, jwt_algorithm)
 
-    response.set_cookie(
-        key="accessToken",
-        value=access_token,
-        secure=True,
-        samesite="none",
-        httponly=True,
-    )
+    manage_cookie(response, "set", value=access_token)
     return Apiresponse(200, data={"accessToken": access_token, "username": username}, message="user loggedIn successfully")
 
 
-# route to verify and remake accessToken
+# route to verify accessToken
 @router.get("/verify_access_token", status_code=200)
 def verify_access_token(res: Response, token: Annotated[str | None, Header()]):
     # Verifying access token from header
     if not token:
-        print("here1")
         raise HTTPException(status_code=401, detail="Access token is missing.")
 
     try:
@@ -175,26 +169,23 @@ def verify_access_token(res: Response, token: Annotated[str | None, Header()]):
         user = db_manager.user_exists(username)
 
         if not user:
-            res.delete_cookie("accessToken", path="/",
-                              secure=True, samesite="none")
+            manage_cookie(res, "delete")
             raise HTTPException(status_code=401, detail="User not found.")
 
         return Apiresponse(statusCode=200, data={"username": username})
 
     except jwt.ExpiredSignatureError:
-        res.delete_cookie("accessToken", path="/",
-                          secure=True, samesite="none")
+        manage_cookie(res, "delete")
         raise HTTPException(status_code=401, detail="Token has expired.")
 
     except jwt.PyJWTError as e:
-        res.delete_cookie("accessToken", path="/",
-                          secure=True, samesite="none")
+        manage_cookie(res, "delete")
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
 @router.get("/logout", status_code=200)
 def logoutUser(res: Response):
-    res.delete_cookie("accessToken", path="/", secure=True, samesite="none")
+    manage_cookie(res, "delete")
     return Apiresponse(statusCode=200, message="Logged out successfully")
 
 

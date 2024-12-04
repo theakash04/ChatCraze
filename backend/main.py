@@ -9,7 +9,7 @@ from src.routers.users import router as users_router
 app = FastAPI()
 
 load_dotenv()
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3000", "https://chatcraze.akashtwt.tech", "http://app-network:3000" ]
 
 app.add_middleware(
     CORSMiddleware,

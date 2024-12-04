@@ -21,6 +21,7 @@ import { useDebounceCallback } from 'usehooks-ts';
 import { Loader2 } from 'lucide-react';
 import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
+import useHash from '@/lib/hashPass';
 
 function Page() {
   const [username, setUsername] = useState('');
@@ -56,7 +57,7 @@ function Page() {
           const AxiosError = error as AxiosError<ApiResponse>;
           setUsernameMessage(
             AxiosError.response?.data.message ??
-              'username shuld be greater than 3'
+            'username shuld be greater than 3'
           );
         } finally {
           setIsCheckingUsername(false);
@@ -71,8 +72,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
-      console.log(data);
-
+      data.password = await useHash(data.password)
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/signUp`,
         data
@@ -96,7 +96,7 @@ function Page() {
   };
 
   return (
-    <div className="flex justify-center items-center pt-40 bg-background mx-5">
+    <div className="flex justify-center items-center h-screen bg-background mx-5">
       <div className="w-full max-w-md p-8 space-y-8 bg-primary-foreground rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
@@ -114,21 +114,21 @@ function Page() {
                   <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="user_example"
+                      placeholder="PotatoNinja123"
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
                         debounced(e.target.value);
                       }}
+                      autoFocus
                     />
                   </FormControl>
                   {isCheckingUsername && <Loader2 className="animate-spin" />}
                   <p
-                    className={`text-sm ${
-                      usernameMessage == 'Username Available'
-                        ? 'text-chart-2'
-                        : 'text-destructive'
-                    }`}
+                    className={`text-sm ${usernameMessage == 'Username Available'
+                      ? 'text-chart-2'
+                      : 'text-destructive'
+                      }`}
                   >
                     {usernameMessage}
                   </p>
@@ -160,7 +160,7 @@ function Page() {
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="top seceret"
+                      placeholder="********"
                       {...field}
                     />
                   </FormControl>
@@ -186,7 +186,7 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Already a member?{' '}
-            <Link href="/login" className="text-ring hover:text-chart-5">
+            <Link href="/login" className="text-ring text-blue-500 hover:text-blue-600">
               login
             </Link>
           </p>

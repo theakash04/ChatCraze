@@ -21,6 +21,8 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
+import useHash from '@/lib/hashPass';
+
 
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +42,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true);
     try {
+      data.password = await useHash(data.password)
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/login`,
         data,
@@ -75,7 +78,7 @@ function Page() {
   };
 
   return (
-    <div className="flex justify-center items-center pt-40 bg-background mx-5">
+    <div className="flex justify-center items-center h-screen bg-background mx-5">
       <div className="w-full max-w-md p-8 space-y-8 bg-primary-foreground rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
@@ -93,7 +96,7 @@ function Page() {
                   <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="username?"
+                      placeholder="PotatoNinja123"
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -113,7 +116,7 @@ function Page() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input type="password" placeholder="********" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +145,7 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Don&apos;t have an Account?{' '}
-            <Link href="/sign-up" className="text-ring hover:text-chart-5">
+            <Link href="/sign-up" className="text-ring hover:text-blue-600 text-blue-500">
               Sign up
             </Link>
           </p>
