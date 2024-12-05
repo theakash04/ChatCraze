@@ -23,7 +23,6 @@ import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
 import useHash from '@/lib/hashPass';
 
-
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,7 +41,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true);
     try {
-      data.password = await useHash(data.password)
+      data.password = await useHash(data.password);
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/login`,
         data,
@@ -145,7 +144,10 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Don&apos;t have an Account?{' '}
-            <Link href="/sign-up" className="text-ring hover:text-blue-600 text-blue-500">
+            <Link
+              href="/sign-up"
+              className="text-ring hover:text-blue-600 text-blue-500"
+            >
               Sign up
             </Link>
           </p>

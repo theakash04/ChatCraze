@@ -67,21 +67,33 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
   };
 
   function handlesidebar() {
-    setShowSideBar((prev) => !prev)
+    setShowSideBar((prev) => !prev);
   }
 
   return (
     <div className="flex h-screen">
       <div className="absolute left-0 sm:hidden block">
-        <Button className="rounded-full flex items-center justify-center" onClick={handlesidebar} variant={"ghost"} size={"icon"}>
+        <Button
+          className="rounded-full flex items-center justify-center"
+          onClick={handlesidebar}
+          variant={'ghost'}
+          size={'icon'}
+        >
           <Menu className="text-white" />
         </Button>
       </div>
       {/* Sidebar */}
-      <div className={`w-64 border-r bg-background flex flex-col sm:relative bottom-0 top-0 absolute sm:left-0 transition-all ease-linear  ${showSideBar ? "left-0" : "-left-72"}`}>
+      <div
+        className={`w-64 border-r bg-background flex flex-col sm:relative bottom-0 top-0 absolute sm:left-0 transition-all ease-linear  ${showSideBar ? 'left-0' : '-left-72'}`}
+      >
         <ScrollArea className="flex-1 relative">
           <div className="absolute right-0 sm:hidden block">
-            <Button className="rounded-full m-2" onClick={handlesidebar} variant={"ghost"} size={"icon"}>
+            <Button
+              className="rounded-full m-2"
+              onClick={handlesidebar}
+              variant={'ghost'}
+              size={'icon'}
+            >
               <Menu className="text-white" />
             </Button>
           </div>

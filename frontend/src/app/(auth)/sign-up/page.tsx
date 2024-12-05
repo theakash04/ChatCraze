@@ -57,7 +57,7 @@ function Page() {
           const AxiosError = error as AxiosError<ApiResponse>;
           setUsernameMessage(
             AxiosError.response?.data.message ??
-            'username shuld be greater than 3'
+              'username shuld be greater than 3'
           );
         } finally {
           setIsCheckingUsername(false);
@@ -72,7 +72,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
-      data.password = await useHash(data.password)
+      data.password = await useHash(data.password);
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/signUp`,
         data
@@ -125,10 +125,11 @@ function Page() {
                   </FormControl>
                   {isCheckingUsername && <Loader2 className="animate-spin" />}
                   <p
-                    className={`text-sm ${usernameMessage == 'Username Available'
-                      ? 'text-chart-2'
-                      : 'text-destructive'
-                      }`}
+                    className={`text-sm ${
+                      usernameMessage == 'Username Available'
+                        ? 'text-chart-2'
+                        : 'text-destructive'
+                    }`}
                   >
                     {usernameMessage}
                   </p>
@@ -158,11 +159,7 @@ function Page() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="********"
-                      {...field}
-                    />
+                    <Input type="password" placeholder="********" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,7 +183,10 @@ function Page() {
         <div className="text-center mt-4">
           <p>
             Already a member?{' '}
-            <Link href="/login" className="text-ring text-blue-500 hover:text-blue-600">
+            <Link
+              href="/login"
+              className="text-ring text-blue-500 hover:text-blue-600"
+            >
               login
             </Link>
           </p>
