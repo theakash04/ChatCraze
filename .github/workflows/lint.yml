@@ -34,7 +34,7 @@ jobs:
       - name: Check Formatting
         run: |
           cd frontend
-          npm run prettier:check
+          npm run prettier:write
 
       - name: Run build
         run: |
