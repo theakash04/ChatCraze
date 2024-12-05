@@ -21,7 +21,7 @@ import { useDebounceCallback } from 'usehooks-ts';
 import { Loader2 } from 'lucide-react';
 import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
-import useHash from '@/lib/hashPass';
+import HashPass from '@/lib/hashPass';
 
 function Page() {
   const [username, setUsername] = useState('');
@@ -72,7 +72,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
-      data.password = await useHash(data.password);
+      data.password = await HashPass(data.password);
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/signUp`,
         data

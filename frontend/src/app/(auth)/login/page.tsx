@@ -21,7 +21,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ApiResponse } from '@/types/ApiResponse';
 import Link from 'next/link';
-import useHash from '@/lib/hashPass';
+import HashPass from '@/lib/hashPass';
 
 function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +41,7 @@ function Page() {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true);
     try {
-      data.password = await useHash(data.password);
+      data.password = await HashPass(data.password);
       const response = await axios.post<ApiResponse>(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/login`,
         data,

@@ -1,4 +1,4 @@
-async function useHash(pass: string) {
+async function HashPass(pass: string) {
   const utf8 = new TextEncoder().encode(pass);
   const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -8,4 +8,4 @@ async function useHash(pass: string) {
   return hashHex;
 }
 
-export default useHash;
+export default HashPass;
