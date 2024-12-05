@@ -11,20 +11,7 @@ import { messages } from '@/types/messages';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ChatPage() {
-  const [message, setMessage] = useState<messages[]>([
-    {
-      type: 'message',
-      from: 'theakash04',
-      to: 'sky',
-      message: 'Hello sky!',
-    },
-    {
-      type: 'message',
-      from: 'sky',
-      to: 'theakash04',
-      message: 'Hello Akash',
-    },
-  ]);
+  const [message, setMessage] = useState<messages[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('');
   const username = usePathname().split('/').pop();
   const [inpMsg, setInpmsg] = useState('');
@@ -42,7 +29,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     ws.current = new WebSocket(
-      `${process.env.NEXT_PUBLIC_WEB_SOCKET}/${username}`
+      `${process.env.NEXT_PUBLIC_WEB_SOCKET || 'ws://localhost:8000/ws'}/${username}`
     );
 
     ws.current.onmessage = (e) => {
@@ -53,7 +40,6 @@ export default function ChatPage() {
           toast({
             title: `New Message from ${message.from}`,
           });
-          console.log('somewhat working');
         }
       } else if (message.type === 'offline') {
         toast({

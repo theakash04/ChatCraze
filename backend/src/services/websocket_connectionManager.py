@@ -20,7 +20,6 @@ class ConnectionManager:
             await websocket.send_text(message)
 
     async def broadcast(self, message: str):
-        print(message)
         for connection in self.active_connections.values():
             await connection.send_text(message)
 

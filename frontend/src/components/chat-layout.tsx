@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { UserAvatar } from '@/components/user-avatar';
-import { Settings, LogOut, Loader2 } from 'lucide-react';
+import { LogOut, Loader2, Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAxios } from '@/hooks/useAxios';
 import { ApiResponse } from '@/types/ApiResponse';
@@ -26,6 +26,7 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
   const username = usePathname().split('/').pop();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showSideBar, setShowSideBar] = useState<boolean>(false);
 
   useEffect(() => {
     async function getAllUsers() {
@@ -37,7 +38,6 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
           setUsers(temp);
         }
       } catch (err) {
-        console.error('Error fetching users:', err);
         router.push('/server-down');
       } finally {
         setIsLoading(false);
@@ -63,30 +63,28 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
           title: 'Logout failed',
           description: 'some unexpected error occured while logging out',
         });
-        console.log(err);
       });
   };
 
+  function handlesidebar() {
+    setShowSideBar((prev) => !prev)
+  }
+
   return (
     <div className="flex h-screen">
+      <div className="absolute left-0 sm:hidden block">
+        <Button className="rounded-full flex items-center justify-center" onClick={handlesidebar} variant={"ghost"} size={"icon"}>
+          <Menu className="text-white" />
+        </Button>
+      </div>
       {/* Sidebar */}
-      <div className="w-64 border-r bg-background flex flex-col">
-        <div className="p-3.5">
-          <Button
-            variant="ghost"
-            className="w-full justify-start font-semibold"
-            onClick={() => router.refresh()}
-          >
-            <UserAvatar
-              user={{ name: username as string }}
-              className="h-6 w-6 mr-2"
-            />
-            {username}
-          </Button>
-        </div>
-        <Separator />
-
-        <ScrollArea className="flex-1">
+      <div className={`w-64 border-r bg-background flex flex-col sm:relative bottom-0 top-0 absolute sm:left-0 transition-all ease-linear  ${showSideBar ? "left-0" : "-left-72"}`}>
+        <ScrollArea className="flex-1 relative">
+          <div className="absolute right-0 sm:hidden block">
+            <Button className="rounded-full m-2" onClick={handlesidebar} variant={"ghost"} size={"icon"}>
+              <Menu className="text-white" />
+            </Button>
+          </div>
           <div className="p-4 space-y-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold tracking-tight mb-2">
@@ -129,11 +127,19 @@ export function ChatLayout({ children, onSelect, ws }: ChatLayoutProps) {
 
         <Separator />
 
-        <div className="p-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start" disabled>
-            <Settings className="mr-2 h-5 w-5" />
-            Settings
+        <div className="p-4 space-y-2 flex items-center justify-center flex-col">
+          <Button
+            variant="ghost"
+            className="w-full justify-start font-semibold"
+            onClick={() => router.refresh()}
+          >
+            <UserAvatar
+              user={{ name: username as string }}
+              className="h-6 w-6"
+            />
+            {username}
           </Button>
+          <Separator />
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive"

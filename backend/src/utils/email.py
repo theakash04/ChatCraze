@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-resend.api_key = os.environ["resend_api"]
+resend.api_key = os.environ["RESEND_API"]
 
 
 def send_mail(
@@ -13,12 +13,13 @@ def send_mail(
     username: str,
     html_template: str,
     verifycode: str = None,
+    subject: str = "Account Verification",
 ):
 
     params: resend.Emails.SendParams = {
         "from": "chatcraze <chatcraze@akashtwt.tech>",
         "to": [email],
-        "subject": "Verify your account now!",
+        "subject": subject,
         "html": html_template,
     }
     email: resend.Email = resend.Emails.send(params)
