@@ -1,5 +1,10 @@
 # Chatcraze Chat Application
 
+
+https://github.com/user-attachments/assets/f0d4d983-aa12-407e-a6c7-0375827eaf11
+
+
+
 **Chatcraze** is a chat application developed to learn WebSocket communication and explore hosting options. It uses **FastAPI** for the backend and **Next.js** for the frontend. The application is containerized with **Docker** using a multi-container setup managed by **Docker Compose**. 
 
 ---
